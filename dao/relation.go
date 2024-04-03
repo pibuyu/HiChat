@@ -43,6 +43,28 @@ func AddFriendByName(userId uint, targetName string) (int, error) {
 	return AddFriend(userId, user.ID)
 }
 
+// DeleteFriend 删除好友
+func DeleteFriend(userId uint, targetName string) (int, error) {
+	//首先通过targetName查到对方的userId
+	zap.S().Info("待删除的好友name：", targetName)
+	targetUser, err := FindUserByName(targetName)
+	if err != nil {
+		return -1, errors.New("查询要删除的好友出错：" + err.Error())
+	}
+	tarId := targetUser.ID
+	zap.S().Info("待删除的好友id：", tarId)
+	//然后去relation表中双向删除好友
+	tx := global.DB.Debug().Delete(&models.Relation{}, "owner_id = ? and target_id = ? and type = 1", userId, tarId)
+	if tx.RowsAffected == 0 {
+		return -1, errors.New("删除好友失败")
+	}
+	tx = global.DB.Debug().Delete(&models.Relation{}, "owner_id = ? and target_id = ? and type = 1", tarId, userId)
+	if tx.RowsAffected == 0 {
+		return -1, errors.New("删除好友失败")
+	}
+	return 0, nil
+}
+
 // AddFriend 加好友
 func AddFriend(userID, TargetId uint) (int, error) {
 
@@ -63,12 +85,12 @@ func AddFriend(userID, TargetId uint) (int, error) {
 	relation := models.Relation{}
 
 	//双向查询是否已经有好友
-	if tx := global.DB.Where("owner_id = ? and target_id = ? and type = 1", userID, TargetId).First(&relation); tx.RowsAffected == 1 {
+	if tx := global.DB.Debug().Where("owner_id = ? and target_id = ? and type = 1", userID, TargetId).First(&relation); tx.RowsAffected == 1 {
 		zap.S().Info("该好友存在")
 		return 0, errors.New("好友已经存在")
 	}
 
-	if tx := global.DB.Where("owner_id = ? and target_id = ?  and type = 1", TargetId, userID).First(&relation); tx.RowsAffected == 1 {
+	if tx := global.DB.Debug().Where("owner_id = ? and target_id = ?  and type = 1", TargetId, userID).First(&relation); tx.RowsAffected == 1 {
 		zap.S().Info("该好友存在")
 		return 0, errors.New("好友已经存在")
 	}
@@ -81,7 +103,7 @@ func AddFriend(userID, TargetId uint) (int, error) {
 	relation.Type = 1
 
 	//同时添加两条好友记录，双向加好友
-	if t := tx.Create(&relation); t.RowsAffected == 0 {
+	if t := tx.Debug().Create(&relation); t.RowsAffected == 0 {
 		zap.S().Info("创建失败")
 
 		//事务回滚
@@ -94,7 +116,7 @@ func AddFriend(userID, TargetId uint) (int, error) {
 	relation.TargetID = userID
 	relation.Type = 1
 
-	if t := tx.Create(&relation); t.RowsAffected == 0 {
+	if t := tx.Debug().Create(&relation); t.RowsAffected == 0 {
 		zap.S().Info("创建失败")
 
 		//事务回滚

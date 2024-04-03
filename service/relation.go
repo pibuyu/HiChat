@@ -48,7 +48,37 @@ func FriendList(ctx *gin.Context) {
 	common.RespOKList(ctx.Writer, users, len(infos))
 }
 
-//AddFriendByName 通过加好友
+// 删除好友
+func DeleteFriend(ctx *gin.Context) {
+	userid := ctx.PostForm("userId")
+	userId, err := strconv.Atoi(userid)
+
+	zap.S().Info("现在正在进行操作的userId:", userId)
+
+	if err != nil {
+		zap.S().Info("类型转换失败", err)
+		return
+	}
+
+	tar := ctx.PostForm("targetName")
+	_, err = dao.DeleteFriend(uint(userId), tar)
+	//删除失败
+	if err != nil {
+		zap.S().Info("删除好友失败", err)
+		ctx.JSON(200, gin.H{
+			"code":    -1, //  0成功   -1失败
+			"message": "删除好友失败",
+		})
+	}
+	zap.S().Info("删除好友成功")
+	ctx.JSON(200, gin.H{
+		"code":    0, //  0成功   -1失败
+		"message": "删除好友成功",
+	})
+
+}
+
+// AddFriendByName 通过加好友
 func AddFriendByName(ctx *gin.Context) {
 	user := ctx.PostForm("userId")
 	userId, err := strconv.Atoi(user)
@@ -96,7 +126,6 @@ func HandleErr(code int, ctx *gin.Context, err error) {
 			"code":    -1, //  0成功   -1失败
 			"message": "不能添加自己",
 		})
-
 	}
 }
 

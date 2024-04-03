@@ -514,6 +514,8 @@
                         that.communitys = res.Rows || [];
                     })
                 },
+
+
                 addfriend: function () {
                     //console.log("addfriend....")
                     var that = this;
@@ -527,7 +529,7 @@
                             that._addfriend(e.value)
                             //}
                         } else {
-                            //mui.toast('您取消了入库');
+                            mui.toast('您取消了添加好友');
                         }
                     }, 'div');
                     document.querySelector('.mui-popup-input input').type = 'text';
@@ -542,6 +544,46 @@
                         post("v1/relation/add"+"?token="+util.parseQuery("token")+"&userId="+userId(), { targetName: dstobj, userId: userId() }, function (res) {
                             if (res.code == 0) {
                                 mui.toast("添加成功");
+                                that.loadfriends();  //添加完了立马刷新好友列表
+                            } else {
+                                mui.toast(res.message);
+                            }
+                        })
+                    }
+                },
+
+
+
+
+                deletefriend: function () {
+                    //console.log("addfriend....")
+                    var that = this;
+                    mui.prompt('', '请输入好友名称', '删除好友', ['取消', '确认'], function (e) {
+                        if (e.index == 1) {
+                            //判断数字
+                            //if (isNaN(e.value) || e.value <= 0) {
+                            //    mui.toast('格式错误');
+                            //} else {
+                            //mui.toast(e.value);
+                            that._deletefriend(e.value)
+                            //}
+                        } else {
+                            //用户取消了删除好友
+                            mui.toast('您取消了删除请求');
+                        }
+                    }, 'div');
+                    document.querySelector('.mui-popup-input input').type = 'text';
+
+                },
+                _deletefriend: function (dstobj) {
+                    //防止一次点击 穿透访问多次
+                    if (this.isDisable) {
+                        this.setTimeFlag()
+
+                        var that = this
+                        post("v1/relation/delete"+"?token="+util.parseQuery("token")+"&userId="+userId(), { targetName: dstobj, userId: userId() }, function (res) {
+                            if (res.code == 0) {
+                                mui.toast("删除成功");
                                 that.loadfriends();
                             } else {
                                 mui.toast(res.message);
@@ -549,6 +591,14 @@
                         })
                     }
                 },
+
+
+
+
+
+
+
+
                 //个人资料修改显示
                 setUserInfo: function () {
                     this.win = "userinfo"

@@ -41,7 +41,7 @@ func FindUserByNameAndPwd(name string, password string) (*models.UserBasic, erro
 
 func FindUserByName(name string) (*models.UserBasic, error) {
 	user := models.UserBasic{}
-	if tx := global.DB.Where("name = ?", name).First(&user); tx.RowsAffected == 0 {
+	if tx := global.DB.Debug().Where("name = ?", name).First(&user); tx.RowsAffected == 0 {
 		return nil, errors.New("没有查询到记录")
 	}
 	return &user, nil
@@ -74,7 +74,7 @@ func FindUerByEmail(email string) (*models.UserBasic, error) {
 // FindUserID 查询id列
 func FindUserID(ID uint) (*models.UserBasic, error) {
 	user := models.UserBasic{}
-	if tx := global.DB.Where(ID).First(&user); tx.RowsAffected == 0 {
+	if tx := global.DB.Debug().Where(ID).First(&user); tx.RowsAffected == 0 {
 		return nil, errors.New("未查询到记录")
 	}
 	return &user, nil

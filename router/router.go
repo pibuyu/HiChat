@@ -43,6 +43,7 @@ func Router() *gin.Engine {
 	{
 		relation.POST("/list", service.FriendList)
 		relation.POST("/add", service.AddFriendByName)
+		relation.POST("/delete", service.DeleteFriend)
 		relation.POST("/new_group", service.NewGroup)
 		relation.POST("/group_list", service.GroupList)
 		relation.POST("/join_group", service.JoinGroup)
